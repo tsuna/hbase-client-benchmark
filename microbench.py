@@ -63,6 +63,8 @@ def bench(cp, klass):
       "-verbose:gc", "-XX:+PrintGCDetails", "-XX:+PrintGCTimeStamps",
       "-XX:+PrintClassHistogram", "-XX:+PrintHeapAtGC", "-XX:+PrintTLAB",
       "-Xloggc:" + gclog, "-cp", cp + ":build", klass]
+    if iteration == 0 and "linux" in sys.platform:
+      cmdline[:0] = ["strace", "-qfc"]
     timing = timeit.run(cmdline, output=output)
     output.close()
     #if options.debug:
@@ -71,11 +73,22 @@ def bench(cp, klass):
       print "error: command returned %d: %s" % (timing.rc, " ".join(cmdline))
       print open(output.name).read(),
       sys.exit(1)
+    if iteration == 0 and "linux" in sys.platform:
+      for line in open(output.name):
+        if line.endswith(" futex\n"):
+          timing.futex_calls = int(line.split()[3])
+      assert line.endswith("total\n")
+      timing.nsyscalls = int(line.split()[2])
+    else:
+      timing.futex_calls = 0
+      timing.nsyscalls = 0
     timing.gc = gcstats.parse(gclog)
     timings.append(timing)
 
   # 1st itertion = warm up (to ensure that all binaries and libraries are in
   # the buffer cache etc.)
+  nsyscalls = timings[0].nsyscalls
+  futex_calls = timings[0].futex_calls
   del timings[0]
   n = float(len(timings))
   rtime = sum(t.rtime for t in timings) / n
@@ -86,8 +99,9 @@ def bench(cp, klass):
   memused = dict((gen, (sum(t.gc.memused[gen][0] for t in timings) /n,
                         sum(t.gc.memused[gen][1] for t in timings) / n))
                   for gen in timings[0].gc.memused)
-  print ("real=%.1f; user=%.1f; sys=%.1f; csw=%.1f; icsw=%.1f;"
-         % (rtime, utime, stime, csw, icsw))
+  print ("real=%.1f; user=%.1f; sys=%.1f; csw=%.1f; icsw=%.1f; syscalls=%d;"
+         " futex=%d;"
+         % (rtime, utime, stime, csw, icsw, nsyscalls, futex_calls))
   for gen, (used, total) in memused.iteritems():
     print "             %s: %dK / %dK" % (gen, used, total)
 
