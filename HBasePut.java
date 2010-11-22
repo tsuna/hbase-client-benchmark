@@ -21,5 +21,6 @@ final class HBasePut {
     final Put put = new Put("foo".getBytes());
     put.add("t".getBytes(), "qualifier".getBytes(), "value".getBytes());
     htable.put(put);
+    System.out.print(ProcSelfStatus.read());
   }
 }

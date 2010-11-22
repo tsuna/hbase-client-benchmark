@@ -20,5 +20,6 @@ final class HBaseGet {
     final HTable htable = HTableFactory.get();
     final Get get = new Get("foo".getBytes());
     htable.get(get);
+    System.out.print(ProcSelfStatus.read());
   }
 }

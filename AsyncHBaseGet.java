@@ -23,6 +23,7 @@ final class AsyncHBaseGet {
       client.get(get).join();
     } finally {
       client.shutdown().join();
+      System.out.print(ProcSelfStatus.read());
     }
   }
 }

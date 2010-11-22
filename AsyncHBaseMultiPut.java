@@ -33,5 +33,6 @@ final class AsyncHBaseMultiPut {
       client.put(put);
     }
     client.shutdown().join();
+    System.out.print(ProcSelfStatus.read());
   }
 }

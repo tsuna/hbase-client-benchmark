@@ -19,13 +19,16 @@ COMPRESSION = none# Can be set to `lzo'
 HBASE_SHELL = $(HBASE_PATH)/bin/hbase $(SHELL_ARGS) shell
 TABLE = hbench# Cannot be changed now as it's hardcoded in the code.
 
-HBASE_TESTS = \
+COMMON_FILES = \
+  ProcSelfStatus.java	\
+
+HBASE_TESTS = $(COMMON_FILES) \
   HBaseGet.java	\
   HBaseMultiPut.java	\
   HBasePut.java	\
   HTableFactory.java	\
 
-ASYNCHBASE_TESTS = \
+ASYNCHBASE_TESTS = $(COMMON_FILES) \
   AsyncHBaseGet.java	\
   AsyncHBaseMultiPut.java	\
   AsyncHBasePut.java	\

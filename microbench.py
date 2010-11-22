@@ -73,15 +73,24 @@ def bench(cp, klass):
       print "error: command returned %d: %s" % (timing.rc, " ".join(cmdline))
       print open(output.name).read(),
       sys.exit(1)
-    if iteration == 0 and "linux" in sys.platform:
+    timing.VmRSS = 0
+    timing.threads = 0
+    timing.futex_calls = 0
+    timing.nsyscalls = 0
+    if "linux" in sys.platform:
       for line in open(output.name):
-        if line.endswith(" futex\n"):
+        if line.startswith("Vm"):  # e.g. "VmRSS:    39500 kB\n"
+          what, size, kb = line.split()
+          what = what[:-1]  # Remove trailing colon
+          size = int(size)
+          setattr(timing, what, size)
+        elif line.startswith("Threads:"):
+          timing.threads = int(line.split()[1])
+        elif iteration == 0 and line.endswith(" futex\n"):
           timing.futex_calls = int(line.split()[3])
-      assert line.endswith("total\n")
-      timing.nsyscalls = int(line.split()[2])
-    else:
-      timing.futex_calls = 0
-      timing.nsyscalls = 0
+      if iteration == 0:
+        assert line.endswith("total\n")
+        timing.nsyscalls = int(line.split()[2])
     timing.gc = gcstats.parse(gclog)
     timings.append(timing)
 
@@ -91,6 +100,7 @@ def bench(cp, klass):
   futex_calls = timings[0].futex_calls
   del timings[0]
   n = float(len(timings))
+  rss   = sum(t.VmRSS for t in timings) / n
   rtime = sum(t.rtime for t in timings) / n
   utime = sum(t.utime for t in timings) / n
   stime = sum(t.stime for t in timings) / n
@@ -100,8 +110,8 @@ def bench(cp, klass):
                         sum(t.gc.memused[gen][1] for t in timings) / n))
                   for gen in timings[0].gc.memused)
   print ("real=%.1f; user=%.1f; sys=%.1f; csw=%.1f; icsw=%.1f; syscalls=%d;"
-         " futex=%d;"
-         % (rtime, utime, stime, csw, icsw, nsyscalls, futex_calls))
+         " futex=%d; rss=%.0f;"
+         % (rtime, utime, stime, csw, icsw, nsyscalls, futex_calls, rss))
   for gen, (used, total) in memused.iteritems():
     print "             %s: %dK / %dK" % (gen, used, total)
 

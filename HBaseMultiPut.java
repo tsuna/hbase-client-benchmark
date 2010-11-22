@@ -33,5 +33,6 @@ final class HBaseMultiPut {
       htable.put(put);
     }
     htable.flushCommits();
+    System.out.print(ProcSelfStatus.read());
   }
 }
