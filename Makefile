@@ -21,11 +21,13 @@ TABLE = hbench# Cannot be changed now as it's hardcoded in the code.
 
 HBASE_TESTS = \
   HBaseGet.java	\
+  HBaseMultiPut.java	\
   HBasePut.java	\
   HTableFactory.java	\
 
 ASYNCHBASE_TESTS = \
   AsyncHBaseGet.java	\
+  AsyncHBaseMultiPut.java	\
   AsyncHBasePut.java	\
   HBaseClientFactory.java	\
 
@@ -61,6 +63,9 @@ microbench: all
 	./microbench.py --debug --name='Simple get' \
 	  --hbase_cp=$(HBASE_CP) --hbase_class=HBaseGet \
 	  --asynchbase_cp=$(ASYNCHBASE_CP) --asynchbase_class=AsyncHBaseGet
+	./microbench.py --debug --name='Multiple edits' \
+	  --hbase_cp=$(HBASE_CP) --hbase_class=HBaseMultiPut \
+	  --asynchbase_cp=$(ASYNCHBASE_CP) --asynchbase_class=AsyncHBaseMultiPut
 
 build:
 	mkdir build
