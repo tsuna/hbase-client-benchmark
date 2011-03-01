@@ -1,1 +1,3 @@
 Set of benchmarks to compare HBase's traditional client with asynchbase.
+
+Start a 0.89 HBase cluster locally and run `make microbench'.
